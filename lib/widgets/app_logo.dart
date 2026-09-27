@@ -48,12 +48,20 @@ class AppLogo extends StatelessWidget {
     );
 
     if (horizontal) {
+      // O nome fica "apoiado" na base laranja do carrinho: a linha de base
+      // das letras coincide com o chão do carrinho, que fica a 68,6% da
+      // altura da imagem (medido em assets/images/leuplace_mark.png).
       return Row(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           mark,
-          const SizedBox(width: 8),
-          wordmark,
+          SizedBox(width: markSize * 0.06),
+          Baseline(
+            baseline: markSize * 0.686,
+            baselineType: TextBaseline.alphabetic,
+            child: wordmark,
+          ),
         ],
       );
     }

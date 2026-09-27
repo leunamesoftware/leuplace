@@ -14,22 +14,36 @@ class AuthRemoteDataSource {
   final ApiClient _api;
   final _controller = StreamController<UserModel?>.broadcast();
   UserModel? _currentUser;
+  bool _resolved = false;
 
   /// Emite o usuário autenticado (ou `null`) sempre que o estado de login
-  /// muda. O primeiro valor só chega depois de tentar restaurar a sessão
-  /// salva (token no dispositivo) — até lá, quem observa vê "carregando".
-  Stream<UserModel?> get authStateChanges => _controller.stream;
+  /// muda. Quem começar a ouvir depois da sessão já resolvida recebe o valor
+  /// atual na hora — sem isso a tela de abertura podia ficar esperando para
+  /// sempre um evento que já tinha passado.
+  Stream<UserModel?> get authStateChanges async* {
+    if (_resolved) yield _currentUser;
+    yield* _controller.stream;
+  }
 
   UserModel? get currentUser => _currentUser;
 
+  void _emit(UserModel? user) {
+    _currentUser = user;
+    _resolved = true;
+    _controller.add(user);
+  }
+
   Future<void> _restoreSession() async {
+    if (await _api.loadToken() == null) {
+      _emit(null);
+      return;
+    }
     try {
       final json = await _api.get('/me');
-      _currentUser = UserModel.fromApiJson(json as Map<String, dynamic>);
+      _emit(UserModel.fromApiJson(json as Map<String, dynamic>));
     } catch (_) {
-      _currentUser = null;
+      _emit(null);
     }
-    _controller.add(_currentUser);
   }
 
   /// Busca o perfil de novo (ex.: depois de publicar um anúncio, para o
@@ -65,15 +79,13 @@ class AuthRemoteDataSource {
   Future<UserModel> _applySession(Map<String, dynamic> json) async {
     await _api.setToken(json['token'] as String);
     final user = UserModel.fromApiJson(json['user'] as Map<String, dynamic>);
-    _currentUser = user;
-    _controller.add(user);
+    _emit(user);
     return user;
   }
 
   Future<void> signOut() async {
     await _api.setToken(null);
-    _currentUser = null;
-    _controller.add(null);
+    _emit(null);
   }
 
   void dispose() => _controller.close();

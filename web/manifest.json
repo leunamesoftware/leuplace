@@ -1,9 +1,9 @@
 {
     "name": "LeuPlace",
     "short_name": "LeuPlace",
-    "start_url": ".",
+    "start_url": "./",
     "display": "standalone",
-    "background_color": "#FFDABF",
+    "background_color": "#FFF7EE",
     "theme_color": "#FF6B00",
     "description": "LeuPlace - Compra, venda e encontre perto de você.",
     "orientation": "portrait-primary",
@@ -31,5 +31,8 @@
             "type": "image/png",
             "purpose": "maskable"
         }
-    ]
+    ],
+    "id": "./",
+    "scope": "./",
+    "lang": "pt-BR"
 }

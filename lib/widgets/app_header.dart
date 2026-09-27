@@ -16,69 +16,75 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
     final region = ref.watch(currentRegionLabelProvider);
     final city = ref.watch(currentLocationLabelProvider);
 
-    return SafeArea(
-      bottom: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-        child: Row(
-          children: [
-            const AppLogo(
-              markSize: 50,
-              wordmarkFontSize: 22,
-              showTagline: false,
-              horizontal: true,
-            ),
-            const Spacer(),
-            Flexible(
-              child: InkWell(
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Localização — em breve.')),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.location_on,
-                      color: AppColors.primary,
-                      size: 20,
+    return ColoredBox(
+      color: AppColors.cream,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+          child: Row(
+            children: [
+              const AppLogo(
+                markSize: 44,
+                wordmarkFontSize: 22,
+                showTagline: false,
+                horizontal: true,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: InkWell(
+                    onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Localização — em breve.')),
                     ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            region,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.bodyRegular.copyWith(
-                              height: 1.1,
-                            ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.location_on,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                region,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.bodyRegular.copyWith(
+                                  height: 1.1,
+                                ),
+                              ),
+                              Text(
+                                city,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.caption.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            city,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.caption.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                        const Icon(
+                          Icons.keyboard_arrow_down,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
+                      ],
                     ),
-                    const Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 18,
-                      color: Colors.grey,
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            const Icon(Icons.notifications_none, color: AppColors.textDark),
-          ],
+              const SizedBox(width: 12),
+              const Icon(Icons.notifications_none, color: AppColors.textDark),
+            ],
+          ),
         ),
       ),
     );

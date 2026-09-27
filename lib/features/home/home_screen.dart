@@ -25,89 +25,92 @@ class HomeScreen extends ConsumerWidget {
       appBar: const AppHeader(),
       body: DecorativeBackground(
         child: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-            sliver: SliverToBoxAdapter(
-              child: _SearchBarLauncher(
-                onTap: () => context.push(RoutePaths.search),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+              sliver: SliverToBoxAdapter(
+                child: _SearchBarLauncher(
+                  onTap: () => context.push(RoutePaths.search),
+                ),
               ),
             ),
-          ),
-          const SliverPadding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-            sliver: SliverToBoxAdapter(child: _PromoBanner()),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-            sliver: SliverToBoxAdapter(
-              child: categoriesAsync.when(
-                loading: () => const SizedBox(
-                  height: 80,
+            const SliverPadding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+              sliver: SliverToBoxAdapter(child: _PromoBanner()),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+              sliver: SliverToBoxAdapter(
+                child: categoriesAsync.when(
+                  loading: () => const SizedBox(
+                    height: 80,
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (error, _) =>
+                      Text('Não foi possível carregar categorias. $error'),
+                  data: (categories) =>
+                      _CategoriesPreview(categories: categories),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+              sliver: SliverToBoxAdapter(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Anúncios perto de você', style: AppTextStyles.h2),
+                    TextButton.icon(
+                      onPressed: () => context.push(RoutePaths.search),
+                      iconAlignment: IconAlignment.end,
+                      icon: const Icon(Icons.arrow_forward, size: 16),
+                      label: const Text('Ver todos'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            nearbyAsync.when(
+              loading: () => const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.all(32),
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (error, _) =>
-                    Text('Não foi possível carregar categorias. $error'),
-                data: (categories) =>
-                    _CategoriesPreview(categories: categories),
               ),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
-            sliver: SliverToBoxAdapter(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Anúncios perto de você', style: AppTextStyles.h2),
-                  TextButton(
-                    onPressed: () => context.push(RoutePaths.search),
-                    child: const Text('Ver todos →'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          nearbyAsync.when(
-            loading: () => const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            ),
-            error: (error, _) => SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text('Não foi possível carregar anúncios. $error'),
-              ),
-            ),
-            data: (products) {
-              if (products.isEmpty) {
-                return const SliverToBoxAdapter(child: _EmptyNearbyState());
-              }
-              return SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 14,
-                    crossAxisSpacing: 14,
-                    childAspectRatio: 0.68,
-                  ),
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    final product = products[index];
-                    return ProductCard(
-                      product: product,
-                      onTap: () =>
-                          context.push(RoutePaths.productDetail(product.id)),
-                    );
-                  }, childCount: products.length),
+              error: (error, _) => SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text('Não foi possível carregar anúncios. $error'),
                 ),
-              );
-            },
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-        ],
+              ),
+              data: (products) {
+                if (products.isEmpty) {
+                  return const SliverToBoxAdapter(child: _EmptyNearbyState());
+                }
+                return SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 14,
+                          crossAxisSpacing: 14,
+                          childAspectRatio: 0.68,
+                        ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final product = products[index];
+                      return ProductCard(
+                        product: product,
+                        onTap: () =>
+                            context.push(RoutePaths.productDetail(product.id)),
+                      );
+                    }, childCount: products.length),
+                  ),
+                );
+              },
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          ],
         ),
       ),
     );
@@ -180,14 +183,16 @@ class _PromoBanner extends StatelessWidget {
             style: TextStyle(color: Colors.white70, fontSize: 13),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {},
+          ElevatedButton.icon(
+            onPressed: () => context.push(RoutePaths.search),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: AppColors.primary,
-              minimumSize: const Size(140, 40),
+              minimumSize: const Size(150, 44),
             ),
-            child: const Text('Ver ofertas →'),
+            iconAlignment: IconAlignment.end,
+            icon: const Icon(Icons.arrow_forward, size: 18),
+            label: const Text('Ver ofertas'),
           ),
         ],
       ),

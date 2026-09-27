@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
 /// Estilos de texto padronizados com a tipografia oficial (Poppins).
 abstract final class AppTextStyles {
+  /// Fonte embutida no app (assets/fonts) — não depende de download.
+  static const String fontFamily = 'Poppins';
+
   static TextStyle _base(double size, FontWeight weight, {Color? color}) {
-    return GoogleFonts.poppins(
+    return TextStyle(
+      fontFamily: AppTextStyles.fontFamily,
       fontSize: size,
       fontWeight: weight,
       color: color ?? AppColors.textDark,

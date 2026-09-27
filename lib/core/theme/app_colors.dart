@@ -14,6 +14,9 @@ abstract final class AppColors {
   static const Color textDark = Color(
     0xFF202124,
   ); // Grafite — textos e elementos
+  static const Color cream = Color(
+    0xFFFFF7EE,
+  ); // Creme — fundo das telas principais
   static const Color surfaceMuted = Color(
     0xFFF4F4F5,
   ); // Cinza claro — fundos e cards

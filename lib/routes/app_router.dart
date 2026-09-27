@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,14 +18,15 @@ import '../features/profile/profile_screen.dart';
 import '../features/search/search_screen.dart';
 import '../features/splash/splash_screen.dart';
 import '../widgets/app_shell.dart';
-import 'go_router_refresh_stream.dart';
 import 'route_paths.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final refreshStream = GoRouterRefreshStream(
-    ref.watch(authRepositoryProvider).authStateChanges,
-  );
-  ref.onDispose(refreshStream.dispose);
+  // Reavalia o redirecionamento só depois que o provider de login já tem o
+  // valor novo — ouvir o stream do repositório em paralelo criava uma
+  // corrida em que o roteador lia o estado antigo e ficava preso na splash.
+  final refreshNotifier = ValueNotifier<int>(0);
+  ref.listen(authStateChangesProvider, (_, _) => refreshNotifier.value++);
+  ref.onDispose(refreshNotifier.dispose);
 
   bool isAuthRoute(String path) =>
       path == RoutePaths.welcome ||
@@ -33,7 +35,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     initialLocation: RoutePaths.splash,
-    refreshListenable: refreshStream,
+    refreshListenable: refreshNotifier,
     redirect: (context, state) {
       final authState = ref.read(authStateChangesProvider);
       final currentPath = state.matchedLocation;

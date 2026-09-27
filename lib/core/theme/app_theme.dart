@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 import 'app_text_styles.dart';
@@ -17,12 +16,12 @@ abstract final class AppTheme {
         error: AppColors.danger,
       ),
       scaffoldBackgroundColor: AppColors.background,
-      fontFamily: GoogleFonts.poppins().fontFamily,
+      fontFamily: AppTextStyles.fontFamily,
     );
 
     return base.copyWith(
       textTheme: base.textTheme.apply(
-        fontFamily: GoogleFonts.poppins().fontFamily,
+        fontFamily: AppTextStyles.fontFamily,
         bodyColor: AppColors.textDark,
         displayColor: AppColors.textDark,
       ),

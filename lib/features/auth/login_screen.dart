@@ -7,8 +7,10 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/validators.dart';
 import '../../routes/route_paths.dart';
+import '../../widgets/pill_button.dart';
 import 'auth_providers.dart';
 import 'widgets/auth_error_banner.dart';
+import 'widgets/auth_form_scaffold.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -54,70 +56,77 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Entrar')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Entre com seu e-mail', style: AppTextStyles.h1),
-                const SizedBox(height: 24),
-                if (_error != null) AuthErrorBanner(message: _error!),
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(hintText: 'E-mail'),
-                  validator: Validators.email,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    hintText: 'Senha',
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
-                    ),
-                  ),
-                  validator: Validators.password,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _loading ? null : _submit,
-                  child: _loading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text('Entrar'),
-                ),
-                const SizedBox(height: 16),
-                Center(
-                  child: TextButton(
-                    onPressed: () => context.push(RoutePaths.register),
-                    child: const Text(
-                      'Ainda não tem conta? Criar conta',
-                      style: TextStyle(color: AppColors.secondary),
-                    ),
-                  ),
-                ),
-              ],
+    return AuthFormScaffold(
+      title: 'Bem-vindo de volta',
+      subtitle: 'Entre com seu e-mail e senha.',
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            if (_error != null) AuthErrorBanner(message: _error!),
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.email],
+              decoration: const InputDecoration(
+                hintText: 'Seu e-mail',
+                prefixIcon: Icon(Icons.mail_outline),
+              ),
+              validator: Validators.email,
             ),
-          ),
+            const SizedBox(height: 14),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              autofillHints: const [AutofillHints.password],
+              onFieldSubmitted: (_) => _submit(),
+              decoration: InputDecoration(
+                hintText: 'Sua senha',
+                prefixIcon: const Icon(Icons.lock_outline),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                ),
+              ),
+              validator: Validators.password,
+            ),
+            const SizedBox(height: 24),
+            PillButton(
+              label: _loading ? 'Entrando...' : 'Entrar',
+              trailing: _loading
+                  ? null
+                  : const Icon(
+                      Icons.arrow_forward,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+              onPressed: _loading ? null : _submit,
+            ),
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: () => context.push(RoutePaths.register),
+              child: Text.rich(
+                TextSpan(
+                  style: AppTextStyles.bodyRegular.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
+                  children: const [
+                    TextSpan(text: 'Ainda não tem conta? '),
+                    TextSpan(
+                      text: 'Criar conta',
+                      style: TextStyle(
+                        color: AppColors.secondary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

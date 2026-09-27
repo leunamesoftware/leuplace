@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -14,6 +15,7 @@ class ApiClient {
   ApiClient({http.Client? httpClient}) : _http = httpClient ?? http.Client();
 
   static const _tokenKey = 'leuplace_auth_token';
+  static const _timeout = Duration(seconds: 15);
 
   final http.Client _http;
   String? _token;
@@ -65,22 +67,21 @@ class ApiClient {
     };
     final encodedBody = body == null ? null : jsonEncode(body);
 
+    final Future<http.Response> request = switch (method) {
+      'GET' => _http.get(uri, headers: headers),
+      'POST' => _http.post(uri, headers: headers, body: encodedBody),
+      'PATCH' => _http.patch(uri, headers: headers, body: encodedBody),
+      'DELETE' => _http.delete(uri, headers: headers),
+      _ => throw ArgumentError('Método HTTP não suportado: $method'),
+    };
+
     http.Response response;
     try {
-      switch (method) {
-        case 'GET':
-          response = await _http.get(uri, headers: headers);
-        case 'POST':
-          response = await _http.post(uri, headers: headers, body: encodedBody);
-        case 'PATCH':
-          response = await _http.patch(uri, headers: headers, body: encodedBody);
-        case 'DELETE':
-          response = await _http.delete(uri, headers: headers);
-        default:
-          throw ArgumentError('Método HTTP não suportado: $method');
-      }
-    } on http.ClientException {
-      throw const AppFailure('Falha de conexão. Verifique sua internet.');
+      response = await request.timeout(_timeout);
+    } on TimeoutException {
+      throw const AppFailure(
+        'O servidor demorou para responder. Tente novamente.',
+      );
     } catch (_) {
       throw const AppFailure('Falha de conexão. Verifique sua internet.');
     }
