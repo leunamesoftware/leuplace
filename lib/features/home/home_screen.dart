@@ -132,10 +132,13 @@ class _SearchBarLauncher extends StatelessWidget {
           children: [
             const Icon(Icons.search, color: Colors.grey),
             const SizedBox(width: 10),
-            Text(
-              'O que você está procurando?',
-              style: AppTextStyles.bodyRegular.copyWith(
-                color: Colors.grey.shade600,
+            Expanded(
+              child: Text(
+                'O que você está procurando?',
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bodyRegular.copyWith(
+                  color: Colors.grey.shade600,
+                ),
               ),
             ),
           ],

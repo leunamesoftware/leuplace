@@ -51,38 +51,31 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                textInputAction: TextInputAction.search,
-                onSubmitted: (_) => _submit(),
-                decoration: InputDecoration(
-                  hintText: 'O que você está procurando?',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _controller.text.isEmpty
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () {
-                            _controller.clear();
-                            _submit();
-                          },
-                        ),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: _submit,
-              style: ElevatedButton.styleFrom(minimumSize: const Size(84, 44)),
-              child: const Text('Buscar'),
-            ),
-          ],
-        ),
         titleSpacing: 12,
+        title: TextField(
+          controller: _controller,
+          textInputAction: TextInputAction.search,
+          onSubmitted: (_) => _submit(),
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            isDense: true,
+            hintText: 'O que você está procurando?',
+            prefixIcon: const Icon(Icons.search),
+            suffixIcon: _controller.text.isEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_forward),
+                    onPressed: _submit,
+                  )
+                : IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      _controller.clear();
+                      _submit();
+                    },
+                  ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+        ),
       ),
       body: Column(
         children: [

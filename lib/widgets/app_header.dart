@@ -28,39 +28,51 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
               showTagline: false,
             ),
             const Spacer(),
-            InkWell(
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Localização — em breve.')),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.location_on,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 4),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        region,
-                        style: AppTextStyles.bodyRegular.copyWith(height: 1.1),
+            Flexible(
+              child: InkWell(
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Localização — em breve.')),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.location_on,
+                      color: AppColors.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            region,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.bodyRegular.copyWith(
+                              height: 1.1,
+                            ),
+                          ),
+                          Text(
+                            city,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.caption.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        city,
-                        style: AppTextStyles.caption.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Icon(
-                    Icons.keyboard_arrow_down,
-                    size: 18,
-                    color: Colors.grey,
-                  ),
-                ],
+                    ),
+                    const Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 18,
+                      color: Colors.grey,
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 12),
