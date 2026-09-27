@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LeuPlace — Painel do Administrador</title>
+<style>
+  :root {
+    --primary: #FF6B00;
+    --secondary: #6C2BD9;
+    --bg: #FFF7EE;
+    --text: #202124;
+    --muted: #6b7280;
+    --card: #ffffff;
+    --danger: #E0332F;
+    --success: #2FA84F;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  header .brand { font-weight: 800; font-size: 20px; }
+  header .brand span { color: var(--primary); }
+  header button {
+    background: none; border: 1px solid #ddd; border-radius: 8px;
+    padding: 8px 14px; cursor: pointer; font-size: 14px;
+  }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  .hidden { display: none !important; }
+
+  #login-view {
+    max-width: 380px; margin: 80px auto; background: #fff; padding: 32px;
+    border-radius: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+  #login-view h1 { font-size: 20px; margin: 0 0 6px; }
+  #login-view p { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; }
+  input {
+    width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 14px;
+  }
+  button.primary {
+    width: 100%; margin-top: 20px; padding: 12px; border: none; border-radius: 8px;
+    background: var(--primary); color: #fff; font-weight: 700; font-size: 15px;
+    cursor: pointer;
+  }
+  button.primary:disabled { opacity: 0.6; cursor: default; }
+  .error { color: var(--danger); font-size: 13px; margin-top: 10px; }
+
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px; margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--card); border-radius: 14px; padding: 18px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .stat-card .value { font-size: 28px; font-weight: 800; }
+  .stat-card .label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  section { margin-bottom: 32px; }
+  section h2 { font-size: 16px; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; padding: 10px 14px; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+  th { background: #fafafa; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    color: #fff;
+  }
+  .badge.admin { background: var(--secondary); }
+  .badge.user { background: #9ca3af; }
+  .badge.pendente { background: var(--danger); }
+  .badge.resolvida { background: var(--success); }
+  .badge.rejeitada { background: #9ca3af; }
+  .row-actions button {
+    border: 1px solid #ddd; background: #fff; border-radius: 6px; padding: 4px 10px;
+    font-size: 12px; cursor: pointer; margin-right: 6px;
+  }
+  .empty { color: var(--muted); font-size: 13px; padding: 16px; text-align: center; }
+</style>
+</head>
+<body>
+
+<div id="login-view">
+  <h1>Painel do Administrador</h1>
+  <p>LeuPlace — acesso restrito a administradores.</p>
+  <label>Endereço da API (Cloudflare Worker)</label>
+  <input id="api-base" placeholder="https://leuplace-api.SEU-SUBDOMINIO.workers.dev" />
+  <label>E-mail</label>
+  <input id="login-email" type="email" placeholder="seu@email.com" />
+  <label>Senha</label>
+  <input id="login-password" type="password" placeholder="Sua senha" />
+  <button class="primary" id="login-btn">Entrar</button>
+  <div class="error hidden" id="login-error"></div>
+</div>
+
+<div id="app-view" class="hidden">
+  <header>
+    <div class="brand">Leu<span>Place</span> — Admin</div>
+    <button id="logout-btn">Sair</button>
+  </header>
+  <main>
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <section>
+      <h2>Denúncias pendentes</h2>
+      <table id="reports-table">
+        <thead><tr><th>Motivo</th><th>Detalhes</th><th>Status</th><th>Data</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="empty hidden" id="reports-empty">Nenhuma denúncia registrada.</div>
+    </section>
+
+    <section>
+      <h2>Usuários</h2>
+      <table id="users-table">
+        <thead><tr><th>Nome</th><th>E-mail</th><th>Papel</th><th>Créditos</th><th>Cadastro</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="empty hidden" id="users-empty">Nenhum usuário encontrado.</div>
+    </section>
+  </main>
+</div>
+
+<script>
+const STORAGE_KEY = 'leuplace_admin_session';
+
+function getSession() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); }
+  catch { return null; }
+}
+function setSession(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function clearSession() { localStorage.removeItem(STORAGE_KEY); }
+
+async function apiFetch(path, options = {}) {
+  const session = getSession();
+  const res = await fetch(session.apiBase + path, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + session.token,
+      ...(options.headers || {}),
+    },
+  });
+  if (res.status === 401 || res.status === 403) {
+    throw new Error('Sessão expirada ou sem permissão de administrador.');
+  }
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erro inesperado.');
+  return data;
+}
+
+function showApp() {
+  document.getElementById('login-view').classList.add('hidden');
+  document.getElementById('app-view').classList.remove('hidden');
+  loadDashboard();
+}
+function showLogin(message) {
+  document.getElementById('app-view').classList.add('hidden');
+  document.getElementById('login-view').classList.remove('hidden');
+  const err = document.getElementById('login-error');
+  if (message) { err.textContent = message; err.classList.remove('hidden'); }
+}
+
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const apiBase = document.getElementById('api-base').value.trim().replace(/\/$/, '');
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-error');
+  err.classList.add('hidden');
+
+  if (!apiBase || !email || !password) {
+    err.textContent = 'Preencha o endereço da API, e-mail e senha.';
+    err.classList.remove('hidden');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+  try {
+    const res = await fetch(apiBase + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Não foi possível entrar.');
+    if (data.user.role !== 'admin') throw new Error('Esta conta não tem permissão de administrador.');
+
+    setSession({ apiBase, token: data.token });
+    showApp();
+  } catch (e) {
+    err.textContent = e.message;
+    err.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+  }
+});
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+  clearSession();
+  showLogin();
+});
+
+async function loadDashboard() {
+  try {
+    const [stats, reports, users] = await Promise.all([
+      apiFetch('/admin/stats'),
+      apiFetch('/admin/reports'),
+      apiFetch('/admin/users'),
+    ]);
+    renderStats(stats);
+    renderReports(reports);
+    renderUsers(users);
+  } catch (e) {
+    showLogin(e.message);
+  }
+}
+
+function renderStats(stats) {
+  const grid = document.getElementById('stats-grid');
+  const items = [
+    { label: 'Usuários cadastrados', value: stats.totalUsers },
+    { label: 'Anúncios ativos', value: stats.activeProducts },
+    { label: 'Vendas registradas', value: stats.totalSales },
+    { label: 'Denúncias pendentes', value: stats.pendingReports },
+  ];
+  grid.innerHTML = items.map(i => `
+    <div class="stat-card">
+      <div class="value">${i.value}</div>
+      <div class="label">${i.label}</div>
+    </div>
+  `).join('');
+}
+
+function renderReports(reports) {
+  const tbody = document.querySelector('#reports-table tbody');
+  const empty = document.getElementById('reports-empty');
+  if (!reports.length) {
+    tbody.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  tbody.innerHTML = reports.map(r => `
+    <tr data-id="${r.id}">
+      <td>${escapeHtml(r.reason)}</td>
+      <td>${escapeHtml(r.details || '—')}</td>
+      <td><span class="badge ${r.status}">${r.status}</span></td>
+      <td>${formatDate(r.created_at)}</td>
+      <td class="row-actions">
+        ${r.status === 'pendente' ? `
+          <button data-action="resolvida">Resolver</button>
+          <button data-action="rejeitada">Rejeitar</button>
+        ` : ''}
+      </td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', async (ev) => {
+      const tr = ev.target.closest('tr');
+      const id = tr.dataset.id;
+      const status = ev.target.dataset.action;
+      btn.disabled = true;
+      try {
+        await apiFetch(`/admin/reports/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status }),
+        });
+        loadDashboard();
+      } catch (e) {
+        alert(e.message);
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
+function renderUsers(users) {
+  const tbody = document.querySelector('#users-table tbody');
+  const empty = document.getElementById('users-empty');
+  if (!users.length) {
+    tbody.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  tbody.innerHTML = users.map(u => `
+    <tr data-id="${u.id}">
+      <td>${escapeHtml(u.name)}</td>
+      <td>${escapeHtml(u.email)}</td>
+      <td><span class="badge ${u.role}">${u.role}</span></td>
+      <td>${u.ad_credits}</td>
+      <td>${formatDate(u.created_at)}</td>
+      <td class="row-actions">
+        <button data-action="${u.role === 'admin' ? 'user' : 'admin'}">
+          ${u.role === 'admin' ? 'Tornar usuário comum' : 'Tornar admin'}
+        </button>
+      </td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', async (ev) => {
+      const tr = ev.target.closest('tr');
+      const id = tr.dataset.id;
+      const role = ev.target.dataset.action;
+      if (!confirm(`Confirma alterar o papel deste usuário para "${role}"?`)) return;
+      btn.disabled = true;
+      try {
+        await apiFetch(`/admin/users/${id}/role`, {
+          method: 'PATCH',
+          body: JSON.stringify({ role }),
+        });
+        loadDashboard();
+      } catch (e) {
+        alert(e.message);
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso.replace(' ', 'T') + 'Z');
+  return d.toLocaleDateString('pt-BR');
+}
+
+// Restaura sessão salva, se houver.
+const existing = getSession();
+if (existing && existing.apiBase && existing.token) {
+  document.getElementById('api-base').value = existing.apiBase;
+  showApp();
+}
+</script>
+</body>
+</html>
