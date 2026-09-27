@@ -1,0 +1,19 @@
+name = "leuplace-api"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+
+# Banco de dados e bucket já criados (vazios, exclusivos do LeuPlace) —
+# a partir daqui a esteira (GitHub Actions) só faz deploy do código, nunca
+# cria/apaga recursos da conta sozinha.
+[[d1_databases]]
+binding = "DB"
+database_name = "leuplace-db"
+database_id = "82d3ad19-419f-4f35-b74a-420b4b302707"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "leuplace-files"
+
+[vars]
+ENVIRONMENT = "production"

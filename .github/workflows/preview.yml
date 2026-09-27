@@ -1,0 +1,54 @@
+name: Publicar prévia (GitHub Pages)
+
+# Builda a prévia visual do app (sem backend, dados de demonstração) e
+# publica automaticamente no GitHub Pages a cada push na branch principal.
+# Gera um link que atualiza sozinho a cada mudança de código.
+#
+# Não usa nenhuma senha/token externo — só precisa ligar o GitHub Pages
+# uma vez em: Settings > Pages > Build and deployment > Source: "GitHub Actions".
+#
+# Isto é só uma prévia visual para acompanhar o desenvolvimento. A
+# publicação de verdade (produção, Cloudflare, loja) é feita à parte.
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - 'claude/**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter pub get
+
+      - run: flutter build web -t lib/main_demo.dart --release --base-href /leuplace/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
