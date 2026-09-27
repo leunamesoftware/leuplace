@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../routes/route_paths.dart';
+import '../../widgets/decorative_background.dart';
 import '../../widgets/product_card.dart';
 import '../categories/category_providers.dart';
 import '../products/product_providers.dart';
@@ -77,7 +78,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
         ),
       ),
-      body: Column(
+      body: DecorativeBackground(
+        child: Column(
         children: [
           if (categoryName != null)
             Padding(
@@ -141,6 +143,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

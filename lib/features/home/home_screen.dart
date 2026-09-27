@@ -7,6 +7,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../routes/route_paths.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/category_icon.dart';
+import '../../widgets/decorative_background.dart';
 import '../../widgets/product_card.dart';
 import '../categories/category_providers.dart';
 import '../products/product_providers.dart';
@@ -21,9 +22,9 @@ class HomeScreen extends ConsumerWidget {
     final nearbyAsync = ref.watch(nearbyProductsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: const AppHeader(),
-      body: CustomScrollView(
+      body: DecorativeBackground(
+        child: CustomScrollView(
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
@@ -107,6 +108,7 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
+        ),
       ),
     );
   }

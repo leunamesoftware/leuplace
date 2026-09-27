@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../routes/route_paths.dart';
 import '../../widgets/app_logo.dart';
+import '../../widgets/decorative_background.dart';
 import '../../widgets/pill_button.dart';
 import 'auth_providers.dart';
 import 'widgets/auth_error_banner.dart';
@@ -44,12 +45,12 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-          child: Column(
-            children: [
+      body: DecorativeBackground(
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+            child: Column(
+              children: [
               const AppLogo(markSize: 120, wordmarkFontSize: 34),
               const SizedBox(height: 28),
               RichText(
@@ -145,7 +146,8 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                   ),
                 ),
               ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
