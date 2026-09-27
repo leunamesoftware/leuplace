@@ -48,9 +48,9 @@ class AppLogo extends StatelessWidget {
     );
 
     if (horizontal) {
-      // O nome fica "apoiado" na base laranja do carrinho: a linha de base
-      // das letras coincide com o chão do carrinho, que fica a 68,6% da
-      // altura da imagem (medido em assets/images/leuplace_mark.png).
+      // O meio das letras maiúsculas fica exatamente no meio da altura do
+      // carrinho (a arte está centralizada na imagem; a altura das
+      // maiúsculas da Poppins é ~70% do tamanho da fonte).
       return Row(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,7 +58,7 @@ class AppLogo extends StatelessWidget {
           mark,
           SizedBox(width: markSize * 0.06),
           Baseline(
-            baseline: markSize * 0.686,
+            baseline: markSize * 0.5 + wordmarkFontSize * 0.35,
             baselineType: TextBaseline.alphabetic,
             child: wordmark,
           ),
