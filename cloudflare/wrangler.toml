@@ -2,6 +2,12 @@ name = "leuplace-api"
 main = "src/index.ts"
 compatibility_date = "2026-01-01"
 
+# Endereço público da API no domínio da LeuName (o endereço *.workers.dev
+# continua funcionando como reserva).
+routes = [
+  { pattern = "leuplace-api.leunamesoftware.com", custom_domain = true }
+]
+
 # Banco de dados e bucket já criados (vazios, exclusivos do LeuPlace) —
 # a partir daqui a esteira (GitHub Actions) só faz deploy do código, nunca
 # cria/apaga recursos da conta sozinha.
