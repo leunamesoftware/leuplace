@@ -28,6 +28,12 @@ class ApiClient {
 
   String? get currentToken => _token;
 
+  /// Token de sessão, lido do aparelho se ainda não estiver em memória.
+  Future<String?> loadToken() async {
+    await _ensureTokenLoaded();
+    return _token;
+  }
+
   Future<void> setToken(String? token) async {
     _token = token;
     _tokenLoaded = true;

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -33,7 +31,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
   final _priceController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  final List<File> _images = [];
+  final List<PickedPhoto> _images = [];
   String? _categoryId;
   ProductCondition _condition = ProductCondition.novo;
   DeliveryOption _deliveryOption = DeliveryOption.pickupOnly;
@@ -56,7 +54,12 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       imageQuality: 80,
       limit: remaining,
     );
-    setState(() => _images.addAll(picked.map((x) => File(x.path))));
+    final photos = await Future.wait(
+      picked.map(
+        (x) async => PickedPhoto(bytes: await x.readAsBytes(), name: x.name),
+      ),
+    );
+    setState(() => _images.addAll(photos));
   }
 
   Future<void> _publish() async {
@@ -82,11 +85,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       final storage = ref.read(storageServiceProvider);
       final imageUrls = <String>[];
       for (var i = 0; i < _images.length; i++) {
-        final url = await storage.uploadProductImage(
-          sellerId: myUid,
-          file: _images[i],
-          index: i,
-        );
+        final url = await storage.uploadProductImage(_images[i]);
         imageUrls.add(url);
       }
 
@@ -446,7 +445,7 @@ class _PhotosPicker extends StatelessWidget {
     required this.onRemove,
   });
 
-  final List<File> images;
+  final List<PickedPhoto> images;
   final VoidCallback onAdd;
   final ValueChanged<int> onRemove;
 
@@ -464,8 +463,8 @@ class _PhotosPicker extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.file(
-                      images[i],
+                    child: Image.memory(
+                      images[i].bytes,
                       width: 90,
                       height: 90,
                       fit: BoxFit.cover,

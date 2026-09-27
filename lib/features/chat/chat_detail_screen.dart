@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -46,9 +44,13 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
 
     setState(() => _sendingImage = true);
     try {
+      final photo = PickedPhoto(
+        bytes: await picked.readAsBytes(),
+        name: picked.name,
+      );
       final url = await ref
           .read(storageServiceProvider)
-          .uploadChatImage(chatId: widget.chatId, file: File(picked.path));
+          .uploadChatImage(photo);
       await ref
           .read(chatRepositoryProvider)
           .sendMessage(chatId: widget.chatId, imageUrl: url);

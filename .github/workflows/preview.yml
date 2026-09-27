@@ -1,14 +1,8 @@
-name: Publicar prévia (GitHub Pages)
+name: Publicar app web (GitHub Pages)
 
-# Builda a prévia visual do app (sem backend, dados de demonstração) e
-# publica automaticamente no GitHub Pages a cada push na branch principal.
-# Gera um link que atualiza sozinho a cada mudança de código.
-#
-# Não usa nenhuma senha/token externo — só precisa ligar o GitHub Pages
-# uma vez em: Settings > Pages > Build and deployment > Source: "GitHub Actions".
-#
-# Isto é só uma prévia visual para acompanhar o desenvolvimento. A
-# publicação de verdade (produção, Cloudflare, loja) é feita à parte.
+# Builda o app de verdade (ligado ao backend em leuplace-api.leunamesoftware.com)
+# e publica no GitHub Pages a cada push na branch principal.
+# A versão de demonstração (dados fictícios) continua em lib/main_demo.dart.
 
 on:
   push:
@@ -42,7 +36,7 @@ jobs:
 
       - run: flutter pub get
 
-      - run: flutter build web -t lib/main_demo.dart --release --base-href /leuplace/
+      - run: flutter build web -t lib/main.dart --release --base-href /leuplace/
 
       - uses: actions/configure-pages@v5
 
