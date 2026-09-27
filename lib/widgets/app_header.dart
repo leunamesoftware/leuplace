@@ -19,12 +19,12 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
         child: Row(
           children: [
             const AppLogo(
-              markSize: 32,
-              wordmarkFontSize: 16,
+              markSize: 46,
+              wordmarkFontSize: 20,
               showTagline: false,
               horizontal: true,
             ),
@@ -85,5 +85,5 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(64);
+  Size get preferredSize => const Size.fromHeight(72);
 }
