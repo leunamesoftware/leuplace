@@ -1,8 +1,9 @@
 // Hash de senha com PBKDF2 (Web Crypto), sem dependência externa.
 const ITERATIONS = 100_000;
 
-function toHex(buffer: ArrayBuffer): string {
-  return Array.from(new Uint8Array(buffer))
+function toHex(data: ArrayBuffer | Uint8Array): string {
+  const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
+  return Array.from(bytes)
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 }
@@ -34,7 +35,7 @@ export async function verifyPassword(password: string, stored: string): Promise<
     'deriveBits',
   ]);
   const derived = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt: fromHex(saltHex), iterations: ITERATIONS, hash: 'SHA-256' },
+    { name: 'PBKDF2', salt: fromHex(saltHex) as BufferSource, iterations: ITERATIONS, hash: 'SHA-256' },
     key,
     256,
   );
