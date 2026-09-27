@@ -3,7 +3,7 @@
     "short_name": "LeuPlace",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#FFF3EB",
+    "background_color": "#6C2BD9",
     "theme_color": "#FF6B00",
     "description": "LeuPlace - Compra, venda e encontre perto de você.",
     "orientation": "portrait-primary",
