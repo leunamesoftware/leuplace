@@ -23,9 +23,10 @@ class AppHeader extends ConsumerWidget implements PreferredSizeWidget {
         child: Row(
           children: [
             const AppLogo(
-              markSize: 40,
-              wordmarkFontSize: 18,
+              markSize: 32,
+              wordmarkFontSize: 16,
               showTagline: false,
+              horizontal: true,
             ),
             const Spacer(),
             Flexible(
