@@ -260,13 +260,14 @@ class _ProductManageCard extends ConsumerWidget {
               if (status != ProductStatus.expired)
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       final repo = ref.read(productRepositoryProvider);
                       if (product.status == ProductStatus.active) {
-                        repo.pause(product.id);
+                        await repo.pause(product.id);
                       } else {
-                        repo.activate(product.id);
+                        await repo.activate(product.id);
                       }
+                      ref.invalidate(myProductsProvider);
                     },
                     icon: Icon(
                       product.status == ProductStatus.active
@@ -323,6 +324,7 @@ class _ProductManageCard extends ConsumerWidget {
     );
     if (confirmed == true) {
       await ref.read(productRepositoryProvider).delete(product.id);
+      ref.invalidate(myProductsProvider);
     }
   }
 }

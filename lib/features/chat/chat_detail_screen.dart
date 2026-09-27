@@ -51,7 +51,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
           .uploadChatImage(chatId: widget.chatId, file: File(picked.path));
       await ref
           .read(chatRepositoryProvider)
-          .sendMessage(chatId: widget.chatId, senderId: myUid, imageUrl: url);
+          .sendMessage(chatId: widget.chatId, imageUrl: url);
+      ref.invalidate(chatMessagesProvider(widget.chatId));
     } finally {
       if (mounted) setState(() => _sendingImage = false);
     }
@@ -88,7 +89,8 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
     _controller.clear();
     await ref
         .read(chatRepositoryProvider)
-        .sendMessage(chatId: widget.chatId, senderId: myUid, text: text);
+        .sendMessage(chatId: widget.chatId, text: text);
+    ref.invalidate(chatMessagesProvider(widget.chatId));
   }
 
   @override

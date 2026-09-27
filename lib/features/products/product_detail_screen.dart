@@ -192,15 +192,11 @@ class ProductDetailScreen extends ConsumerWidget {
       return;
     }
 
-    final chatId = await ref
+    final chat = await ref
         .read(chatRepositoryProvider)
-        .findOrCreateChat(
-          productId: product.id,
-          buyerId: myUid,
-          sellerId: product.sellerId,
-        );
+        .findOrCreateChat(product.id);
 
-    if (context.mounted) context.push(RoutePaths.chatDetail(chatId));
+    if (context.mounted) context.push(RoutePaths.chatDetail(chat.id));
   }
 
   String _formatPrice(double price) {

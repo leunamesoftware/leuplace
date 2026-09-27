@@ -1,45 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/errors/app_failure.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../routes/route_paths.dart';
 import '../../widgets/app_logo.dart';
 import '../../widgets/decorative_background.dart';
 import '../../widgets/pill_button.dart';
-import 'auth_providers.dart';
-import 'widgets/auth_error_banner.dart';
 import 'widgets/google_mark.dart';
 
 /// Tela de boas-vindas: apresenta o LeuPlace e dá entrada no fluxo de login
 /// (Google ou e-mail) ou de cadastro.
-class WelcomeScreen extends ConsumerStatefulWidget {
+class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
-  @override
-  ConsumerState<WelcomeScreen> createState() => _WelcomeScreenState();
-}
-
-class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
-  bool _loading = false;
-  String? _error;
-
-  Future<void> _signInWithGoogle() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      await ref.read(authRepositoryProvider).signInWithGoogle();
-    } on AppFailure catch (e) {
-      setState(() => _error = e.message);
-    } catch (_) {
-      setState(() => _error = 'Não foi possível entrar com o Google.');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  void _googleSoon(BuildContext context) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Login com Google em breve.')));
   }
 
   @override
@@ -103,20 +81,17 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                 ],
               ),
               const SizedBox(height: 28),
-              if (_error != null) AuthErrorBanner(message: _error!),
               PillButton(
                 label: 'Entrar com o Google',
                 icon: const GoogleMark(),
-                onPressed: _loading ? null : _signInWithGoogle,
+                onPressed: () => _googleSoon(context),
               ),
               const SizedBox(height: 12),
               PillButton(
                 label: 'Entrar com e-mail',
                 filled: false,
                 icon: const Icon(Icons.mail_rounded, color: AppColors.primary),
-                onPressed: _loading
-                    ? null
-                    : () => context.push(RoutePaths.login),
+                onPressed: () => context.push(RoutePaths.login),
               ),
               const SizedBox(height: 20),
               Row(
@@ -135,9 +110,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
               ),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: _loading
-                    ? null
-                    : () => context.push(RoutePaths.register),
+                onPressed: () => context.push(RoutePaths.register),
                 child: const Text(
                   'Criar conta',
                   style: TextStyle(

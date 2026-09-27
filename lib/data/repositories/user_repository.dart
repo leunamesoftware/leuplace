@@ -1,40 +1,32 @@
 import '../datasources/user_remote_datasource.dart';
 import '../models/user_model.dart';
 
-/// Regras de leitura/escrita do perfil do usuário, isolando o Firestore do
-/// resto do app.
+/// Perfis de usuário: leitura pública (ex.: dados do vendedor na tela de
+/// anúncio) e edição do próprio perfil.
 class UserRepository {
   UserRepository(this._dataSource);
 
   final UserRemoteDataSource _dataSource;
 
-  Future<void> createProfile(UserModel user) {
-    return _dataSource.setUser(user.uid, user.toMap());
-  }
-
   Future<UserModel?> getProfile(String uid) async {
-    final doc = await _dataSource.getUser(uid);
-    if (!doc.exists) return null;
-    return UserModel.fromMap(doc.id, doc.data()!);
+    try {
+      final json = await _dataSource.getPublicProfile(uid);
+      return UserModel.fromApiJson(json);
+    } catch (_) {
+      return null;
+    }
   }
 
-  Stream<UserModel?> watchProfile(String uid) {
-    return _dataSource.watchUser(uid).map((doc) {
-      if (!doc.exists) return null;
-      return UserModel.fromMap(doc.id, doc.data()!);
-    });
-  }
-
-  Future<void> updateProfile(
-    String uid, {
+  Future<UserModel> updateProfile({
     String? name,
     String? phone,
     String? photoUrl,
-  }) {
-    final data = <String, dynamic>{};
-    if (name != null) data['name'] = name;
-    if (phone != null) data['phone'] = phone;
-    if (photoUrl != null) data['photoUrl'] = photoUrl;
-    return _dataSource.updateUser(uid, data);
+  }) async {
+    final json = await _dataSource.updateMyProfile(
+      name: name,
+      phone: phone,
+      photoUrl: photoUrl,
+    );
+    return UserModel.fromApiJson(json);
   }
 }

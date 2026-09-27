@@ -7,52 +7,41 @@ class ChatRepository {
 
   final ChatRemoteDataSource _dataSource;
 
-  Stream<List<ChatModel>> watchChatsForUser(String uid) {
-    return _dataSource.watchChatsForUser(uid).map((snapshot) {
-      final chats = snapshot.docs
-          .map((doc) => ChatModel.fromMap(doc.id, doc.data()))
-          .toList();
-      chats.sort((a, b) => b.lastMessageAt.compareTo(a.lastMessageAt));
-      return chats;
-    });
+  Future<List<ChatModel>> getChats() async {
+    final rows = await _dataSource.getChats();
+    final chats = rows
+        .map((row) => ChatModel.fromApiJson(row as Map<String, dynamic>))
+        .toList();
+    chats.sort((a, b) => b.lastMessageAt.compareTo(a.lastMessageAt));
+    return chats;
   }
 
-  Stream<ChatModel?> watchChat(String chatId) {
-    return _dataSource.watchChat(chatId).map((doc) {
-      if (!doc.exists) return null;
-      return ChatModel.fromMap(doc.id, doc.data()!);
-    });
+  Future<ChatModel?> getChat(String chatId) async {
+    final json = await _dataSource.getChat(chatId);
+    if (json == null) return null;
+    return ChatModel.fromApiJson(json);
   }
 
-  Future<String> findOrCreateChat({
-    required String productId,
-    required String buyerId,
-    required String sellerId,
-  }) {
-    return _dataSource.findOrCreateChat(
-      productId: productId,
-      buyerId: buyerId,
-      sellerId: sellerId,
-    );
+  /// Encontra a conversa já existente sobre o anúncio, ou cria uma nova.
+  Future<ChatModel> findOrCreateChat(String productId) async {
+    final json = await _dataSource.findOrCreateChat(productId);
+    return ChatModel.fromApiJson(json);
   }
 
-  Stream<List<MessageModel>> watchMessages(String chatId) {
-    return _dataSource.watchMessages(chatId).map((snapshot) {
-      return snapshot.docs
-          .map((doc) => MessageModel.fromMap(doc.id, doc.data()))
-          .toList();
-    });
+  Future<List<MessageModel>> getMessages(String chatId) async {
+    final rows = await _dataSource.getMessages(chatId);
+    return rows
+        .map((row) => MessageModel.fromApiJson(row as Map<String, dynamic>))
+        .toList();
   }
 
   Future<void> sendMessage({
     required String chatId,
-    required String senderId,
     String text = '',
     String? imageUrl,
   }) {
     return _dataSource.sendMessage(
       chatId: chatId,
-      senderId: senderId,
       text: text,
       imageUrl: imageUrl,
     );

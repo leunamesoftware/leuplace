@@ -6,11 +6,14 @@ class CreditRepository {
 
   final CreditRemoteDataSource _dataSource;
 
-  Stream<List<CreditTransactionModel>> watchHistory(String uid) {
-    return _dataSource.watchHistory(uid).map((snapshot) {
-      return snapshot.docs
-          .map((doc) => CreditTransactionModel.fromMap(doc.id, doc.data()))
-          .toList();
-    });
+  Future<List<CreditTransactionModel>> getHistory() async {
+    final json = await _dataSource.getCredits();
+    final rows = json['history'] as List<dynamic>? ?? const [];
+    return rows
+        .map(
+          (row) =>
+              CreditTransactionModel.fromApiJson(row as Map<String, dynamic>),
+        )
+        .toList();
   }
 }

@@ -31,6 +31,24 @@ class UserModel {
 
   bool get isAdmin => role == UserRole.admin;
 
+  /// Constrói a partir da resposta JSON do backend próprio (Cloudflare
+  /// Worker) — formato usado por `/auth/login`, `/auth/register` e `/me`.
+  factory UserModel.fromApiJson(Map<String, dynamic> json) {
+    return UserModel(
+      uid: json['id'] as String,
+      name: json['name'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      phone: json['phone'] as String?,
+      photoUrl: (json['photo_url'] ?? json['photoUrl']) as String?,
+      role: UserRole.fromString(json['role'] as String?),
+      adCredits:
+          ((json['ad_credits'] ?? json['adCredits']) as num?)?.toInt() ?? 0,
+      createdAt: json['created_at'] != null
+          ? DateTime.parse((json['created_at'] as String).replaceFirst(' ', 'T'))
+          : DateTime.now(),
+    );
+  }
+
   factory UserModel.fromMap(String uid, Map<String, dynamic> map) {
     final createdAt = map['createdAt'];
     return UserModel(

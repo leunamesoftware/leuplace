@@ -1,8 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
-
 import '../data/models/chat_model.dart';
 import '../data/models/message_model.dart';
 import '../data/models/product_model.dart';
+import '../data/models/user_model.dart';
 import '../data/repositories/auth_repository.dart';
 import '../data/repositories/chat_repository.dart';
 import '../data/repositories/product_repository.dart';
@@ -10,18 +9,16 @@ import 'fake_data.dart';
 
 /// Implementações sem backend real, usadas só na prévia de demonstração —
 /// `implements` (não `extends`) para nunca precisar construir um datasource
-/// de verdade nem tocar no Firebase.
+/// de verdade nem tocar no backend.
 class FakeProductRepository implements ProductRepository {
   final List<ProductModel> _products = List.of(FakeData.products);
 
   @override
-  Stream<List<ProductModel>> watchActiveProducts() => Stream.value(_products);
+  Future<List<ProductModel>> getActiveProducts() async => _products;
 
   @override
-  Stream<List<ProductModel>> watchByCategory(String categoryId) {
-    return Stream.value(
-      _products.where((p) => p.categoryId == categoryId).toList(),
-    );
+  Future<List<ProductModel>> getByCategory(String categoryId) async {
+    return _products.where((p) => p.categoryId == categoryId).toList();
   }
 
   @override
@@ -30,18 +27,16 @@ class FakeProductRepository implements ProductRepository {
   }
 
   @override
-  Stream<ProductModel?> watchById(String id) {
+  Future<ProductModel?> getById(String id) async {
     for (final product in _products) {
-      if (product.id == id) return Stream.value(product);
+      if (product.id == id) return product;
     }
-    return Stream.value(null);
+    return null;
   }
 
   @override
-  Stream<List<ProductModel>> watchMyProducts(String sellerId) {
-    return Stream.value(
-      _products.where((p) => p.sellerId == sellerId).toList(),
-    );
+  Future<List<ProductModel>> getMyProducts() async {
+    return _products.where((p) => p.sellerId == FakeData.me.uid).toList();
   }
 
   @override
@@ -56,43 +51,37 @@ class FakeProductRepository implements ProductRepository {
   }
 
   @override
-  Stream<List<ProductModel>> searchByTitle(String query) {
-    if (query.trim().isEmpty) return watchActiveProducts();
+  Future<List<ProductModel>> searchByTitle(String query) async {
+    if (query.trim().isEmpty) return getActiveProducts();
     final lower = query.toLowerCase();
-    return Stream.value(
-      _products.where((p) => p.title.toLowerCase().contains(lower)).toList(),
-    );
+    return _products
+        .where((p) => p.title.toLowerCase().contains(lower))
+        .toList();
   }
 }
 
 class FakeChatRepository implements ChatRepository {
   @override
-  Stream<List<ChatModel>> watchChatsForUser(String uid) =>
-      Stream.value([FakeData.chat]);
+  Future<List<ChatModel>> getChats() async => [FakeData.chat];
 
   @override
-  Stream<ChatModel?> watchChat(String chatId) => Stream.value(FakeData.chat);
+  Future<ChatModel?> getChat(String chatId) async => FakeData.chat;
 
   @override
-  Future<String> findOrCreateChat({
-    required String productId,
-    required String buyerId,
-    required String sellerId,
-  }) async {
-    return FakeData.chat.id;
+  Future<ChatModel> findOrCreateChat(String productId) async {
+    return FakeData.chat;
   }
 
   @override
-  Stream<List<MessageModel>> watchMessages(String chatId) {
+  Future<List<MessageModel>> getMessages(String chatId) async {
     final sorted = List.of(FakeData.messages)
       ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
-    return Stream.value(sorted);
+    return sorted;
   }
 
   @override
   Future<void> sendMessage({
     required String chatId,
-    required String senderId,
     String text = '',
     String? imageUrl,
   }) async {
@@ -100,7 +89,7 @@ class FakeChatRepository implements ChatRepository {
       MessageModel(
         id: 'm${FakeData.messages.length + 1}',
         chatId: chatId,
-        senderId: senderId,
+        senderId: FakeData.me.uid,
         text: text,
         imageUrl: imageUrl,
         sentAt: DateTime.now(),
@@ -111,10 +100,10 @@ class FakeChatRepository implements ChatRepository {
 
 class FakeAuthRepository implements AuthRepository {
   @override
-  Stream<User?> get authStateChanges => Stream.value(null);
+  Stream<UserModel?> get authStateChanges => Stream.value(null);
 
   @override
-  User? get currentUser => null;
+  UserModel? get currentUser => null;
 
   @override
   Future<void> signUpWithEmail({
@@ -131,19 +120,7 @@ class FakeAuthRepository implements AuthRepository {
   }) async {}
 
   @override
-  Future<void> signInWithGoogle() async {}
-
-  @override
-  Future<void> sendPhoneVerificationCode({
-    required String phoneNumber,
-    required void Function(String verificationId) onCodeSent,
-  }) async {}
-
-  @override
-  Future<void> confirmPhoneCode({
-    required String verificationId,
-    required String smsCode,
-  }) async {}
+  Future<void> refreshProfile() async {}
 
   @override
   Future<void> signOut() async {}

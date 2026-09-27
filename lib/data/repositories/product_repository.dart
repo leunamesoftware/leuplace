@@ -1,41 +1,43 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../datasources/product_remote_datasource.dart';
 import '../models/product_model.dart';
 
-/// Regras de leitura de anúncios. Escrita (criar/editar/pausar/marcar
-/// vendido) chega na Fase 5.
+/// Regras de leitura/escrita de anúncios contra o backend próprio.
 class ProductRepository {
   ProductRepository(this._dataSource);
 
   final ProductRemoteDataSource _dataSource;
 
-  Stream<List<ProductModel>> watchActiveProducts() {
-    return _dataSource.watchActiveProducts().map(_mapDocs);
+  Future<List<ProductModel>> getActiveProducts() async {
+    final rows = await _dataSource.getActiveProducts();
+    return _mapRows(rows);
   }
 
-  Stream<List<ProductModel>> watchByCategory(String categoryId) {
-    return _dataSource.watchByCategory(categoryId).map(_mapDocs);
+  Future<List<ProductModel>> getByCategory(String categoryId) async {
+    final rows = await _dataSource.getByCategory(categoryId);
+    return _mapRows(rows);
   }
 
-  /// Publica o anúncio consumindo 1 crédito do vendedor. Lança [StateError]
-  /// quando não há créditos disponíveis.
+  Future<List<ProductModel>> searchByTitle(String query) async {
+    if (query.trim().isEmpty) return getActiveProducts();
+    final rows = await _dataSource.searchByTitle(query.trim());
+    return _mapRows(rows);
+  }
+
+  /// Publica o anúncio consumindo 1 crédito do vendedor. O backend recusa
+  /// (HTTP 402, traduzido para [AppFailure]) quando não há créditos.
   Future<void> publish(ProductModel product) {
-    return _dataSource.publishWithCredit(
-      sellerId: product.sellerId,
-      productData: product.toMap(),
-    );
+    return _dataSource.create(product.toApiJson());
   }
 
-  Stream<ProductModel?> watchById(String id) {
-    return _dataSource.watchById(id).map((doc) {
-      if (!doc.exists) return null;
-      return ProductModel.fromMap(doc.id, doc.data()!);
-    });
+  Future<ProductModel?> getById(String id) async {
+    final json = await _dataSource.getById(id);
+    if (json == null) return null;
+    return ProductModel.fromApiJson(json);
   }
 
-  Stream<List<ProductModel>> watchMyProducts(String sellerId) {
-    return _dataSource.watchBySeller(sellerId).map(_mapDocs);
+  Future<List<ProductModel>> getMyProducts() async {
+    final rows = await _dataSource.getMine();
+    return _mapRows(rows);
   }
 
   Future<void> pause(String productId) =>
@@ -46,14 +48,9 @@ class ProductRepository {
 
   Future<void> delete(String productId) => _dataSource.delete(productId);
 
-  Stream<List<ProductModel>> searchByTitle(String query) {
-    if (query.trim().isEmpty) return watchActiveProducts();
-    return _dataSource.watchByTitlePrefix(query.trim()).map(_mapDocs);
-  }
-
-  List<ProductModel> _mapDocs(QuerySnapshot<Map<String, dynamic>> snapshot) {
-    return snapshot.docs
-        .map((doc) => ProductModel.fromMap(doc.id, doc.data()))
+  List<ProductModel> _mapRows(List<dynamic> rows) {
+    return rows
+        .map((row) => ProductModel.fromApiJson(row as Map<String, dynamic>))
         .toList();
   }
 }

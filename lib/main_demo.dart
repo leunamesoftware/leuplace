@@ -27,12 +27,11 @@ void main() {
         productRepositoryProvider.overrideWithValue(fakeProducts),
         chatRepositoryProvider.overrideWithValue(fakeChats),
         authRepositoryProvider.overrideWithValue(fakeAuth),
-        currentUidProvider.overrideWithValue(FakeData.me.uid),
-        categoriesProvider.overrideWith(
-          (ref) => Stream.value(FakeData.categories),
-        ),
-        currentUserProfileProvider.overrideWith(
+        authStateChangesProvider.overrideWith(
           (ref) => Stream.value(FakeData.me),
+        ),
+        categoriesProvider.overrideWith(
+          (ref) => Future.value(FakeData.categories),
         ),
         userProfileProvider.overrideWith(
           (ref, uid) => Future.value(
@@ -40,7 +39,7 @@ void main() {
           ),
         ),
         creditHistoryProvider.overrideWith(
-          (ref) => Stream.value(<CreditTransactionModel>[]),
+          (ref) => Future.value(<CreditTransactionModel>[]),
         ),
       ],
       child: const LeuPlaceDemoApp(),

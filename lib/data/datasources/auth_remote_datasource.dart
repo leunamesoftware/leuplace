@@ -1,85 +1,80 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:async';
 
-/// Acesso bruto ao Firebase Auth e ao Google Sign-In — sem regra de negócio.
-/// A camada de repositório decide o que fazer com o resultado.
+import '../../core/services/api_client.dart';
+import '../models/user_model.dart';
+
+/// Acesso bruto ao backend próprio (Cloudflare Worker) para autenticação —
+/// sem regra de negócio. A camada de repositório decide o que fazer com o
+/// resultado.
 class AuthRemoteDataSource {
-  AuthRemoteDataSource(this._firebaseAuth, this._googleSignIn);
-
-  /// Nulos apenas na prévia de demonstração — [FakeAuthRepository] nunca lê.
-  final FirebaseAuth? _firebaseAuth;
-  final GoogleSignIn? _googleSignIn;
-
-  Stream<User?> get authStateChanges => _firebaseAuth!.authStateChanges();
-
-  User? get currentUser => _firebaseAuth!.currentUser;
-
-  Future<User?> createUserWithEmail(String email, String password) async {
-    final credential = await _firebaseAuth!.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    return credential.user;
+  AuthRemoteDataSource(this._api) {
+    _restoreSession();
   }
 
-  Future<User?> signInWithEmail(String email, String password) async {
-    final credential = await _firebaseAuth!.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    return credential.user;
+  final ApiClient _api;
+  final _controller = StreamController<UserModel?>.broadcast();
+  UserModel? _currentUser;
+
+  /// Emite o usuário autenticado (ou `null`) sempre que o estado de login
+  /// muda. O primeiro valor só chega depois de tentar restaurar a sessão
+  /// salva (token no dispositivo) — até lá, quem observa vê "carregando".
+  Stream<UserModel?> get authStateChanges => _controller.stream;
+
+  UserModel? get currentUser => _currentUser;
+
+  Future<void> _restoreSession() async {
+    try {
+      final json = await _api.get('/me');
+      _currentUser = UserModel.fromApiJson(json as Map<String, dynamic>);
+    } catch (_) {
+      _currentUser = null;
+    }
+    _controller.add(_currentUser);
   }
 
-  Future<User?> signInWithGoogle() async {
-    final googleUser = await _googleSignIn!.authenticate();
-    final googleAuth = googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      idToken: googleAuth.idToken,
-    );
-    final userCredential = await _firebaseAuth!.signInWithCredential(
-      credential,
-    );
-    return userCredential.user;
-  }
+  /// Busca o perfil de novo (ex.: depois de publicar um anúncio, para o
+  /// saldo de créditos exibido na tela ficar correto).
+  Future<void> refresh() => _restoreSession();
 
-  /// Envia o código SMS de verificação (login por telefone). O `verificationId`
-  /// retornado em [onCodeSent] deve ser guardado para uso em [confirmSmsCode].
-  Future<void> sendPhoneVerificationCode({
-    required String phoneNumber,
-    required void Function(String verificationId) onCodeSent,
-    required void Function(FirebaseAuthException error) onError,
-  }) {
-    return _firebaseAuth!.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      verificationCompleted: (credential) async {
-        await _firebaseAuth.signInWithCredential(credential);
-      },
-      verificationFailed: onError,
-      codeSent: (verificationId, _) => onCodeSent(verificationId),
-      codeAutoRetrievalTimeout: (_) {},
-    );
-  }
-
-  Future<User?> confirmSmsCode({
-    required String verificationId,
-    required String smsCode,
+  Future<UserModel> register({
+    required String name,
+    required String email,
+    required String password,
+    String? phone,
   }) async {
-    final credential = PhoneAuthProvider.credential(
-      verificationId: verificationId,
-      smsCode: smsCode,
+    final json = await _api.post(
+      '/auth/register',
+      body: {
+        'name': name,
+        'email': email,
+        'password': password,
+        if (phone != null) 'phone': phone,
+      },
     );
-    final userCredential = await _firebaseAuth!.signInWithCredential(
-      credential,
-    );
-    return userCredential.user;
+    return _applySession(json as Map<String, dynamic>);
   }
 
-  Future<void> updateDisplayName(String name) async {
-    await _firebaseAuth!.currentUser?.updateDisplayName(name);
+  Future<UserModel> signInWithEmail(String email, String password) async {
+    final json = await _api.post(
+      '/auth/login',
+      body: {'email': email, 'password': password},
+    );
+    return _applySession(json as Map<String, dynamic>);
+  }
+
+  Future<UserModel> _applySession(Map<String, dynamic> json) async {
+    await _api.setToken(json['token'] as String);
+    final user = UserModel.fromApiJson(json['user'] as Map<String, dynamic>);
+    _currentUser = user;
+    _controller.add(user);
+    return user;
   }
 
   Future<void> signOut() async {
-    await _googleSignIn!.signOut();
-    await _firebaseAuth!.signOut();
+    await _api.setToken(null);
+    _currentUser = null;
+    _controller.add(null);
   }
+
+  void dispose() => _controller.close();
 }

@@ -29,6 +29,21 @@ class CreditTransactionModel {
     required this.createdAt,
   });
 
+  factory CreditTransactionModel.fromApiJson(Map<String, dynamic> json) {
+    return CreditTransactionModel(
+      id: json['id'] as String,
+      type: CreditTransactionType.fromString(json['type'] as String?),
+      amount: (json['amount'] as num?)?.toInt() ?? 0,
+      description: json['description'] as String? ?? '',
+      createdAt: _parseDate(json['created_at'] as String?),
+    );
+  }
+
+  static DateTime _parseDate(String? value) {
+    if (value == null) return DateTime.now();
+    return DateTime.parse(value.contains('T') ? value : value.replaceFirst(' ', 'T'));
+  }
+
   factory CreditTransactionModel.fromMap(String id, Map<String, dynamic> map) {
     final createdAt = map['createdAt'];
     return CreditTransactionModel(

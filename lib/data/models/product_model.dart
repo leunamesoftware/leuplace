@@ -49,6 +49,56 @@ class ProductModel {
 
   bool get isExpired => DateTime.now().isAfter(expiresAt);
 
+  /// Constrói a partir da resposta JSON do backend próprio (Cloudflare
+  /// Worker) — usado por todos os endpoints de `/products`.
+  factory ProductModel.fromApiJson(Map<String, dynamic> json) {
+    return ProductModel(
+      id: json['id'] as String,
+      sellerId: json['seller_id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0,
+      imageUrls: List<String>.from(json['image_urls'] as List? ?? const []),
+      categoryId: json['category_id'] as String? ?? '',
+      subcategoryId: json['subcategory_id'] as String?,
+      condition: ProductCondition.fromString(json['condition'] as String?),
+      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+      status: ProductStatus.fromString(json['status'] as String?),
+      deliveryOption: DeliveryOption.fromString(
+        json['delivery_option'] as String?,
+      ),
+      state: json['state'] as String? ?? '',
+      city: json['city'] as String? ?? '',
+      region: json['region'] as String? ?? '',
+      createdAt: _parseApiDate(json['created_at'] as String?),
+      expiresAt: _parseApiDate(json['expires_at'] as String?),
+    );
+  }
+
+  static DateTime _parseApiDate(String? value) {
+    if (value == null) return DateTime.now();
+    return DateTime.parse(value.contains('T') ? value : value.replaceFirst(' ', 'T'));
+  }
+
+  /// Corpo enviado para `POST /products` — o backend calcula
+  /// `titleLower`/`createdAt`/`expiresAt`/`status` sozinho.
+  Map<String, dynamic> toApiJson() {
+    return {
+      'title': title,
+      'description': description,
+      'price': price,
+      'imageUrls': imageUrls,
+      'categoryId': categoryId,
+      if (subcategoryId != null) 'subcategoryId': subcategoryId,
+      'condition': condition.name,
+      'quantity': quantity,
+      'deliveryOption': deliveryOption.name,
+      'state': state,
+      'city': city,
+      'region': region,
+    };
+  }
+
   factory ProductModel.fromMap(String id, Map<String, dynamic> map) {
     final createdAt = map['createdAt'];
     final expiresAt = map['expiresAt'];

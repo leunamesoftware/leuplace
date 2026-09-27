@@ -111,6 +111,9 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       );
 
       await ref.read(productRepositoryProvider).publish(product);
+      await ref.read(authRepositoryProvider).refreshProfile();
+      ref.invalidate(myProductsProvider);
+      ref.invalidate(nearbyProductsProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

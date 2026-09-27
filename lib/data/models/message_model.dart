@@ -21,6 +21,22 @@ class MessageModel {
 
   bool get isImage => imageUrl != null && imageUrl!.isNotEmpty;
 
+  factory MessageModel.fromApiJson(Map<String, dynamic> json) {
+    return MessageModel(
+      id: json['id'] as String,
+      chatId: json['chat_id'] as String? ?? '',
+      senderId: json['sender_id'] as String? ?? '',
+      text: json['text'] as String? ?? '',
+      imageUrl: json['image_url'] as String?,
+      sentAt: _parseDate(json['sent_at'] as String?),
+    );
+  }
+
+  static DateTime _parseDate(String? value) {
+    if (value == null) return DateTime.now();
+    return DateTime.parse(value.contains('T') ? value : value.replaceFirst(' ', 'T'));
+  }
+
   factory MessageModel.fromMap(String id, Map<String, dynamic> map) {
     final sentAt = map['sentAt'];
     return MessageModel(

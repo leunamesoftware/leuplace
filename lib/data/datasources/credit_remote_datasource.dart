@@ -1,20 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/services/api_client.dart';
 
-import '../../core/constants/firestore_paths.dart';
-
-/// Acesso ao histórico de créditos, subcoleção de `users`.
+/// Acesso bruto ao backend próprio (Cloudflare Worker) para créditos.
 class CreditRemoteDataSource {
-  CreditRemoteDataSource(this._firestore);
+  CreditRemoteDataSource(this._api);
 
-  final FirebaseFirestore _firestore;
+  final ApiClient _api;
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> watchHistory(String uid) {
-    return _firestore
-        .collection(FirestorePaths.users)
-        .doc(uid)
-        .collection('credit_transactions')
-        .orderBy('createdAt', descending: true)
-        .limit(50)
-        .snapshots();
+  Future<Map<String, dynamic>> getCredits() async {
+    return await _api.get('/credits') as Map<String, dynamic>;
   }
 }

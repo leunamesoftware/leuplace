@@ -1,19 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/services/api_client.dart';
 
-import '../../core/constants/firestore_paths.dart';
-
-/// Acesso bruto à coleção `categories` no Firestore.
+/// Acesso bruto ao backend próprio (Cloudflare Worker) para categorias.
 class CategoryRemoteDataSource {
-  CategoryRemoteDataSource(this._firestore);
+  CategoryRemoteDataSource(this._api);
 
-  final FirebaseFirestore _firestore;
+  final ApiClient _api;
 
-  // Ordena só por `order` (sem filtro composto) para não exigir um índice
-  // do Firestore; a filtragem por `active` é feita no repositório.
-  Stream<QuerySnapshot<Map<String, dynamic>>> watchCategories() {
-    return _firestore
-        .collection(FirestorePaths.categories)
-        .orderBy('order')
-        .snapshots();
+  Future<List<dynamic>> getCategories() async {
+    return await _api.get('/categories') as List<dynamic>;
   }
 }

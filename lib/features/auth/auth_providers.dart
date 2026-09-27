@@ -1,22 +1,22 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/services/firebase_instances.dart';
+import '../../core/services/api_client.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/datasources/user_remote_datasource.dart';
 import '../../data/models/user_model.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/user_repository.dart';
 
+final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
+
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
-  return AuthRemoteDataSource(
-    ref.watch(firebaseAuthProvider),
-    ref.watch(googleSignInProvider),
-  );
+  final dataSource = AuthRemoteDataSource(ref.watch(apiClientProvider));
+  ref.onDispose(dataSource.dispose);
+  return dataSource;
 });
 
 final userRemoteDataSourceProvider = Provider<UserRemoteDataSource>((ref) {
-  return UserRemoteDataSource(ref.watch(firestoreProvider));
+  return UserRemoteDataSource(ref.watch(apiClientProvider));
 });
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {
@@ -24,29 +24,28 @@ final userRepositoryProvider = Provider<UserRepository>((ref) {
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepository(
-    ref.watch(authRemoteDataSourceProvider),
-    ref.watch(userRepositoryProvider),
-  );
+  return AuthRepository(ref.watch(authRemoteDataSourceProvider));
 });
 
-/// Emite o usuário autenticado (ou `null`) sempre que o estado de login muda.
-final authStateChangesProvider = StreamProvider<User?>((ref) {
+/// Emite o usuário autenticado (ou `null`) sempre que o estado de login
+/// muda. O primeiro valor demora até a sessão salva no aparelho ser
+/// conferida com o backend — até lá, `authState.isLoading` é `true`.
+final authStateChangesProvider = StreamProvider<UserModel?>((ref) {
   return ref.watch(authRepositoryProvider).authStateChanges;
 });
 
-/// Uid do usuário autenticado, sem acoplar o resto do app ao tipo `User` do
-/// Firebase — facilita trocar de backend (ou usar dados falsos numa prévia)
+/// Uid do usuário autenticado, sem acoplar o resto do app ao tipo do
+/// backend — facilita trocar de backend (ou usar dados falsos numa prévia)
 /// sem tocar nas telas.
 final currentUidProvider = Provider<String?>((ref) {
   return ref.watch(authStateChangesProvider).value?.uid;
 });
 
-/// Perfil (com papel/permissões) do usuário atualmente autenticado.
-final currentUserProfileProvider = StreamProvider<UserModel?>((ref) {
-  final uid = ref.watch(currentUidProvider);
-  if (uid == null) return Stream.value(null);
-  return ref.watch(userRepositoryProvider).watchProfile(uid);
+/// Perfil (com papel/permissões) do usuário atualmente autenticado — o
+/// mesmo valor de [authStateChangesProvider], só com um nome mais claro
+/// para quem só precisa do perfil.
+final currentUserProfileProvider = Provider<AsyncValue<UserModel?>>((ref) {
+  return ref.watch(authStateChangesProvider);
 });
 
 /// Atalho para checagem de permissão de administrador na UI.

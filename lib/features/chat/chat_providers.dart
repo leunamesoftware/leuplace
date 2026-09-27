@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/services/firebase_instances.dart';
 import '../../data/datasources/chat_remote_datasource.dart';
 import '../../data/models/chat_model.dart';
 import '../../data/models/message_model.dart';
@@ -8,7 +7,7 @@ import '../../data/repositories/chat_repository.dart';
 import '../auth/auth_providers.dart';
 
 final chatRemoteDataSourceProvider = Provider<ChatRemoteDataSource>((ref) {
-  return ChatRemoteDataSource(ref.watch(firestoreProvider));
+  return ChatRemoteDataSource(ref.watch(apiClientProvider));
 });
 
 final chatRepositoryProvider = Provider<ChatRepository>((ref) {
@@ -16,23 +15,26 @@ final chatRepositoryProvider = Provider<ChatRepository>((ref) {
 });
 
 /// Conversas do usuário autenticado (comprador ou vendedor), mais recentes
-/// primeiro.
-final myChatsProvider = StreamProvider<List<ChatModel>>((ref) {
+/// primeiro. Invalide (`ref.invalidate(myChatsProvider)`) após enviar uma
+/// mensagem ou abrir uma conversa nova.
+final myChatsProvider = FutureProvider<List<ChatModel>>((ref) {
   final uid = ref.watch(currentUidProvider);
-  if (uid == null) return Stream.value(const []);
-  return ref.watch(chatRepositoryProvider).watchChatsForUser(uid);
+  if (uid == null) return Future.value(const []);
+  return ref.watch(chatRepositoryProvider).getChats();
 });
 
-final chatDetailProvider = StreamProvider.family<ChatModel?, String>((
+final chatDetailProvider = FutureProvider.family<ChatModel?, String>((
   ref,
   chatId,
 ) {
-  return ref.watch(chatRepositoryProvider).watchChat(chatId);
+  return ref.watch(chatRepositoryProvider).getChat(chatId);
 });
 
-final chatMessagesProvider = StreamProvider.family<List<MessageModel>, String>((
+/// Mensagens de uma conversa — invalide após enviar para ver a mensagem
+/// aparecer (não há atualização automática em tempo real via REST).
+final chatMessagesProvider = FutureProvider.family<List<MessageModel>, String>((
   ref,
   chatId,
 ) {
-  return ref.watch(chatRepositoryProvider).watchMessages(chatId);
+  return ref.watch(chatRepositoryProvider).getMessages(chatId);
 });

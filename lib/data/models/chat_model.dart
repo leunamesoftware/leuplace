@@ -21,6 +21,22 @@ class ChatModel {
 
   List<String> get participants => [buyerId, sellerId];
 
+  factory ChatModel.fromApiJson(Map<String, dynamic> json) {
+    return ChatModel(
+      id: json['id'] as String,
+      productId: json['product_id'] as String? ?? '',
+      buyerId: json['buyer_id'] as String? ?? '',
+      sellerId: json['seller_id'] as String? ?? '',
+      lastMessage: json['last_message'] as String? ?? '',
+      lastMessageAt: _parseDate(json['last_message_at'] as String?),
+    );
+  }
+
+  static DateTime _parseDate(String? value) {
+    if (value == null) return DateTime.now();
+    return DateTime.parse(value.contains('T') ? value : value.replaceFirst(' ', 'T'));
+  }
+
   factory ChatModel.fromMap(String id, Map<String, dynamic> map) {
     final lastMessageAt = map['lastMessageAt'];
     return ChatModel(

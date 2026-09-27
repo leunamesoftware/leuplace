@@ -15,6 +15,16 @@ class CategoryModel {
     this.active = true,
   });
 
+  factory CategoryModel.fromApiJson(Map<String, dynamic> json) {
+    return CategoryModel(
+      id: json['id'] as String,
+      name: json['name'] as String? ?? '',
+      icon: json['icon'] as String? ?? '',
+      order: (json['order_index'] as num?)?.toInt() ?? 0,
+      active: (json['active'] as num?) != 0,
+    );
+  }
+
   factory CategoryModel.fromMap(String id, Map<String, dynamic> map) {
     return CategoryModel(
       id: id,

@@ -1,29 +1,28 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/services/api_client.dart';
 
-import '../../core/constants/firestore_paths.dart';
-
-/// Acesso bruto à coleção `users` no Firestore — sem regra de negócio.
+/// Acesso bruto ao backend próprio (Cloudflare Worker) para perfis de
+/// usuário — sem regra de negócio.
 class UserRemoteDataSource {
-  UserRemoteDataSource(this._firestore);
+  UserRemoteDataSource(this._api);
 
-  final FirebaseFirestore _firestore;
+  final ApiClient _api;
 
-  CollectionReference<Map<String, dynamic>> get _collection =>
-      _firestore.collection(FirestorePaths.users);
-
-  Future<void> setUser(String uid, Map<String, dynamic> data) {
-    return _collection.doc(uid).set(data, SetOptions(merge: true));
+  Future<Map<String, dynamic>> getPublicProfile(String uid) async {
+    return await _api.get('/users/$uid') as Map<String, dynamic>;
   }
 
-  Future<DocumentSnapshot<Map<String, dynamic>>> getUser(String uid) {
-    return _collection.doc(uid).get();
-  }
-
-  Stream<DocumentSnapshot<Map<String, dynamic>>> watchUser(String uid) {
-    return _collection.doc(uid).snapshots();
-  }
-
-  Future<void> updateUser(String uid, Map<String, dynamic> data) {
-    return _collection.doc(uid).update(data);
+  Future<Map<String, dynamic>> updateMyProfile({
+    String? name,
+    String? phone,
+    String? photoUrl,
+  }) async {
+    return await _api.patch(
+      '/me',
+      body: {
+        if (name != null) 'name': name,
+        if (phone != null) 'phone': phone,
+        if (photoUrl != null) 'photoUrl': photoUrl,
+      },
+    ) as Map<String, dynamic>;
   }
 }
