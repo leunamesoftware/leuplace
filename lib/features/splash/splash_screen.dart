@@ -64,7 +64,7 @@ class SplashScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   'Carregando...',
-                  style: TextStyle(color: AppColors.textDark.withOpacity(0.7), fontSize: 13),
+                  style: TextStyle(color: AppColors.textDark.withValues(alpha: 0.7), fontSize: 13),
                 ),
                 const SizedBox(height: 56),
               ],
